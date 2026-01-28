@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen Frame Pause Video</title>
+<title>Frame Pause Video</title>
 
 <style>
   html, body {
@@ -56,43 +56,80 @@ const pauseFrames = [
 const pauseTimes = pauseFrames.map(f => f / FPS);
 
 let pauseIndex = 0;
-let waitingForInput = false;
+let isPaused = false;
 
 /* ==========================
-   PAUSE LOGIC
+   AUTO PAUSE LOGIC
    ========================== */
 
 video.addEventListener("timeupdate", () => {
+  if (isPaused) return;
   if (pauseIndex >= pauseTimes.length) return;
 
-  if (video.currentTime >= pauseTimes[pauseIndex] && !waitingForInput) {
+  if (video.currentTime >= pauseTimes[pauseIndex]) {
     video.pause();
-    waitingForInput = true;
+    isPaused = true;
   }
 });
 
-function continuePlayback() {
-  if (!waitingForInput) return;
+/* ==========================
+   NAVIGATION
+   ========================== */
 
+function nextPause() {
+  if (pauseIndex >= pauseTimes.length) return;
+
+  isPaused = false;
   pauseIndex++;
-  waitingForInput = false;
   video.play();
 }
 
+function previousPause() {
+  if (pauseIndex > 0) {
+    pauseIndex--;
+  }
+  video.pause();
+  video.currentTime = pauseTimes[pauseIndex];
+  isPaused = true;
+}
+
 /* ==========================
-   INPUT
+   INPUT — KEYBOARD
    ========================== */
 
-document.addEventListener("click", continuePlayback);
 document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" || e.code === "Enter") {
-    e.preventDefault();
-    continuePlayback();
+  switch (e.code) {
+    case "ArrowRight":
+    case "Space":
+    case "Enter":
+      e.preventDefault();
+      nextPause();
+      break;
+
+    case "ArrowLeft":
+      e.preventDefault();
+      previousPause();
+      break;
   }
 });
 
 /* ==========================
-   AUTO‑START
+   INPUT — CLICK LEFT / RIGHT
+   ========================== */
+
+document.addEventListener("click", (e) => {
+  const clickX = e.clientX;
+  const screenWidth = window.innerWidth;
+
+  if (clickX < screenWidth / 2) {
+    previousPause();
+  } else {
+    nextPause();
+  }
+});
+
+/* ==========================
+   AUTO START
    ========================== */
 
 video.addEventListener("loadedmetadata", () => {
