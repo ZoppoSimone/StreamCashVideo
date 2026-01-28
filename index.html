@@ -14,11 +14,11 @@
     object-fit: contain;
     pointer-events: none;
     transition: opacity 0.5s;
-    opacity: 0; /* hidden by default */
+    opacity: 0;
   }
 
   video.active {
-    opacity: 1; /* fade in when active */
+    opacity: 1;
   }
 </style>
 
@@ -49,7 +49,7 @@
       document.getElementById("video2")
     ];
 
-    // Attach ended handlers once
+    // When a video ends, allow click to go next
     videos.forEach((vid) => {
       vid.onended = () => {
         waitingForClick = true;
@@ -61,12 +61,16 @@
       const vid = videos[vidIndex];
       const otherVid = videos[1 - vidIndex];
 
+      // Set source and load
       vid.src = segments[i];
       vid.load();
-      vid.play(); // play immediately
 
-      vid.classList.add("active");
-      otherVid.classList.remove("active");
+      // Only swap active class when new video starts playing
+      vid.oncanplay = () => {
+        vid.play();
+        vid.classList.add("active");
+        otherVid.classList.remove("active");
+      };
     }
 
     // Autoplay first segment
