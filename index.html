@@ -20,6 +20,40 @@
     object-fit: contain;
     background: black;
   }
+
+  .nav {
+    position: fixed;
+    right: 10px;
+    font-size: 36px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 14px;
+    z-index: 10;
+    transition: opacity 0.2s;
+  }
+
+  .nav:hover {
+    opacity: 1;
+  }
+
+  .nav.left {
+    left: 10px;
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .nav.right {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .nav.fast {
+    top: calc(50% + 60px);
+    font-size: 30px;
+    opacity: 0.5;
+  }
 </style>
 </head>
 <body>
@@ -31,6 +65,11 @@
   playsinline
   muted
 ></video>
+
+<!-- Navigation Arrows -->
+<div class="nav left" id="navLeft">◀</div>
+<div class="nav right" id="navRight">▶</div>
+<div class="nav fast" id="navFast">▶▶</div>
 
 <script>
 const video = document.getElementById("video");
@@ -93,6 +132,15 @@ function previousPause() {
   isPaused = true;
 }
 
+function jumpForwardInstant() {
+  if (pauseIndex < pauseTimes.length - 1) {
+    pauseIndex++;
+    video.pause();
+    video.currentTime = pauseTimes[pauseIndex];
+    isPaused = true;
+  }
+}
+
 /* ==========================
    INPUT — KEYBOARD
    ========================== */
@@ -114,18 +162,36 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ==========================
-   INPUT — CLICK LEFT / RIGHT
+   INPUT — SCREEN CLICK
    ========================== */
 
 document.addEventListener("click", (e) => {
-  const clickX = e.clientX;
-  const screenWidth = window.innerWidth;
+  if (e.target.classList.contains("nav")) return;
 
-  if (clickX < screenWidth / 2) {
+  if (e.clientX < window.innerWidth / 2) {
     previousPause();
   } else {
     nextPause();
   }
+});
+
+/* ==========================
+   INPUT — ARROW BUTTONS
+   ========================== */
+
+document.getElementById("navLeft").addEventListener("click", (e) => {
+  e.stopPropagation();
+  previousPause();
+});
+
+document.getElementById("navRight").addEventListener("click", (e) => {
+  e.stopPropagation();
+  nextPause();
+});
+
+document.getElementById("navFast").addEventListener("click", (e) => {
+  e.stopPropagation();
+  jumpForwardInstant();
 });
 
 /* ==========================
